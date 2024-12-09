@@ -33,12 +33,12 @@ RUN mkdir -p /opt/jbr-${JBR_VERSION}-linux-x64-${JBR_BUILD}/lib/hotswap && chmod
 
 RUN curl -fsSL -o /opt/jbr-${JBR_VERSION}-linux-x64-${JBR_BUILD}/lib/hotswap/hotswap-agent.jar ${HOTSWAP_AGENT_URL}
 
-RUN --mount=target=/build,source=build \
-    TARGET=${TARGETARCH}${TARGETVARIANT} \
-    /build/run.sh install-packages
+COPY build/ /build/
+RUN find /build -type f -exec dos2unix {} +
 
-RUN --mount=target=/build,source=build \
-    /build/run.sh setup-user
+ARG TARGET="${TARGETARCH}${TARGETVARIANT}"
+RUN /build/run.sh install-packages
+RUN /build/run.sh setup-user
 
 COPY --chmod=644 files/sudoers* /etc/sudoers.d
 
