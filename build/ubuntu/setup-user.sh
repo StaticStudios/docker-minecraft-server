@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -e
 
 if id ubuntu > /dev/null 2>&1; then
