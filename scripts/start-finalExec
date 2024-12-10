@@ -1,6 +1,9 @@
 #!/bin/bash
 
-export JVM_OPTS="-javaagent:/opt/jbr-21.0.5-linux-x64-b631.8/lib/hotswap/hotswap-agent.jar=disablePlugin=Log4J2,Hibernate,HibernateJakarta,Hibernate3,Hibernate3JPA -XX:+AllowEnhancedClassRedefinition ${JVM_OPTS}"
+# Process DISABLED_HA_PLUGINS
+PREFIXED_DISABLED__HA_PLUGINS=$(echo "${DISABLED_HA_PLUGINS}" | awk -F, '{for (i=1; i<=NF; i++) print "disablePlugin="$i}' | tr '\n' ',' | sed 's/,$//')
+
+export JVM_OPTS="-javaagent:/opt/jbr-21.0.5-linux-x64-b631.8/lib/hotswap/hotswap-agent.jar=${PREFIXED_DISABLED__HA_PLUGINS} -XX:+AllowEnhancedClassRedefinition ${JVM_OPTS}"
 
 : "${DEBUG_EXEC:=false}"
 : "${SETUP_ONLY:=false}"
