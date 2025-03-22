@@ -16,8 +16,8 @@ RUN apt-get update && apt-get install -y \
     ${EXTRA_DEB_PACKAGES} && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ARG JBR_VERSION=21.0.5
-ARG JBR_BUILD=b631.8
+ARG JBR_VERSION=21.0.6
+ARG JBR_BUILD=b895.97
 ENV JBR_URL=https://cache-redirector.jetbrains.com/intellij-jbr/jbr-${JBR_VERSION}-linux-x64-${JBR_BUILD}.tar.gz
 
 RUN curl -fsSL ${JBR_URL} | tar -xz -C /opt && \
@@ -29,9 +29,9 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 ARG HOTSWAP_AGENT_VERSION=2.0.0
 ENV HOTSWAP_AGENT_URL=https://github.com/HotswapProjects/HotswapAgent/releases/download/RELEASE-${HOTSWAP_AGENT_VERSION}/hotswap-agent-${HOTSWAP_AGENT_VERSION}.jar
 
-RUN mkdir -p /opt/jbr-${JBR_VERSION}-linux-x64-${JBR_BUILD}/lib/hotswap && chmod 755 /opt/jbr-${JBR_VERSION}-linux-x64-${JBR_BUILD}/lib/hotswap
+RUN mkdir -p /opt/jbr-linux-x64/lib/hotswap && chmod 755 /opt/jbr-linux-x64/lib/hotswap
 
-RUN curl -fsSL -o /opt/jbr-${JBR_VERSION}-linux-x64-${JBR_BUILD}/lib/hotswap/hotswap-agent.jar ${HOTSWAP_AGENT_URL}
+RUN curl -fsSL -o /opt/jbr-linux-x64/lib/hotswap/hotswap-agent.jar ${HOTSWAP_AGENT_URL}
 
 COPY build/ /build/
 RUN find /build -type f -exec dos2unix {} +
