@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export JVM_OPTS="-XX:+AllowEnhancedClassRedefinition ${JVM_OPTS}"
+
 : "${DEBUG_EXEC:=false}"
 : "${SETUP_ONLY:=false}"
 : "${CUSTOM_JAR_EXEC:=}"

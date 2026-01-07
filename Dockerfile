@@ -1,5 +1,6 @@
-ARG BASE_IMAGE=eclipse-temurin:25-jre
-FROM ${BASE_IMAGE}
+#published at sammyaknan/minecraft-server-jbr25
+
+FROM ubuntu:22.04
 
 # hook into docker BuildKit --platform support
 # see https://docs.docker.com/engine/reference/builder/#automatic-platform-args-in-the-global-scope
@@ -7,18 +8,37 @@ ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
 
-# The following three arg/env vars get used by the platform specific "install-packages" script
 ARG EXTRA_DEB_PACKAGES=""
-ARG EXTRA_DNF_PACKAGES=""
-ARG EXTRA_ALPINE_PACKAGES=""
 ARG FORCE_INSTALL_PACKAGES=1
-RUN --mount=target=/build,source=build \
-    TARGET=${TARGETARCH}${TARGETVARIANT} \
-    /build/run.sh install-packages
-COPY --from=tianon/gosu /gosu /usr/local/bin/
 
-RUN --mount=target=/build,source=build \
-    /build/run.sh setup-user
+RUN apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    dos2unix \
+    sudo \
+    ${EXTRA_DEB_PACKAGES} && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ARG JBR_VERSION=25.0.1
+ARG JBR_BUILD=b266.34
+ENV JBR_URL=https://cache-redirector.jetbrains.com/intellij-jbr/jbr-${JBR_VERSION}-linux-x64-${JBR_BUILD}.tar.gz
+
+RUN curl -fsSL ${JBR_URL} | tar -xz -C /opt && \
+    ln -s /opt/jbr-${JBR_VERSION} /opt/jbr
+
+ENV JAVA_HOME=/opt/jbr-${JBR_VERSION}-linux-x64-${JBR_BUILD}
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+
+COPY build/ /build/
+RUN find /build -type f -exec dos2unix {} +
+
+
+ARG TARGET="${TARGETARCH}${TARGETVARIANT}"
+RUN /build/run.sh install-packages
+RUN /build/run.sh setup-user
+
+COPY --from=tianon/gosu /gosu /usr/local/bin/
 
 EXPOSE 25565
 
@@ -64,7 +84,7 @@ WORKDIR /data
 STOPSIGNAL SIGTERM
 
 # End user MUST set EULA and change RCON_PASSWORD
-ENV TYPE=VANILLA VERSION=LATEST EULA="" UID=1000 GID=1000 LC_ALL=en_US.UTF-8
+ENV TYPE=VANILLA VERSION=LATEST EULA="" UID=1000 GID=1000
 
 COPY --chmod=755 scripts/start* /image/scripts/
 
@@ -82,6 +102,8 @@ COPY --chmod=755 files/* /image/
 RUN curl -fsSL -o /image/Log4jPatcher.jar https://github.com/CreeperHost/Log4jPatcher/releases/download/v1.0.1/Log4jPatcher-1.0.1.jar
 
 RUN dos2unix /image/scripts/start* /image/scripts/auto/*
+
+ENV SKIP_CHOWN_DATA="true"
 
 ENTRYPOINT [ "/image/scripts/start" ]
 HEALTHCHECK --start-period=2m --retries=2 --interval=30s CMD mc-health
